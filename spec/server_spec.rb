@@ -71,12 +71,17 @@ RSpec.describe Capybara::Server do
     expect(@res2.body).to include('Hello Second Server')
   end
 
-  it "should use the server if it already running" do
+  it "should use the server if it already running and Capybara.reuse_server is true" do
+    old_reuse_server = Capybara.reuse_server
+
     @app1 = proc { |env| [200, {}, ["Hello Server!"]]}
     @app2 = proc { |env| [200, {}, ["Hello Second Server!"]]}
 
+    Capybara.reuse_server = true
     @server1a = Capybara::Server.new(@app1).boot
     @server1b = Capybara::Server.new(@app1).boot
+
+    Capybara.reuse_server = false
     @server2a = Capybara::Server.new(@app2).boot
     @server2b = Capybara::Server.new(@app2).boot
 
@@ -87,7 +92,9 @@ RSpec.describe Capybara::Server do
     expect(@res2.body).to include('Hello Second Server')
 
     expect(@server1a.port).to eq(@server1b.port)
-    expect(@server2a.port).to eq(@server2b.port)
+    expect(@server2a.port).not_to eq(@server2b.port)
+
+    Capybara.reuse_server = old_reuse_server
   end
 
   it "should raise server errors when the server errors before the timeout" do

@@ -38,7 +38,8 @@ module Capybara
       @middleware = Middleware.new(@app)
       @server_thread = nil # suppress warnings
       @host, @port = host, port
-      @port ||= Capybara::Server.ports[@app.object_id]
+      # @port ||= Capybara::Server.ports[@app.object_id]
+      @port ||= Capybara::Server.ports[Capybara.reuse_server ? @app.object_id : @middleware.object_id]
       @port ||= find_available_port
     end
 
@@ -64,7 +65,7 @@ module Capybara
 
     def boot
       unless responsive?
-        Capybara::Server.ports[@app.object_id] = @port
+        Capybara::Server.ports[Capybara.reuse_server ? @app.object_id : @middleware.object_id] = @port
 
         @server_thread = Thread.new do
           Capybara.server.call(@middleware, @port)
