@@ -381,6 +381,7 @@ Capybara::SpecHelper.spec "node" do
   end
 
   def be_an_invalid_element_error(session)
-    satisfy { |error| session.driver.invalid_element_errors.any? { |e| error.is_a? e } }
+    error_classes = [Capybara::ElementNotFound] + session.driver.invalid_element_errors
+    satisfy { |error| error_classes.any? { |e| error.is_a? e } }
   end
 end
